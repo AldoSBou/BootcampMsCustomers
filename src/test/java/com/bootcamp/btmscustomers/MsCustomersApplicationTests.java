@@ -1,4 +1,4 @@
-package com.bootcamp.mscustomers;
+package com.bootcamp.btmscustomers;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

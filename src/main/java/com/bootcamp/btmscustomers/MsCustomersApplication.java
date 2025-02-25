@@ -1,4 +1,4 @@
-package com.bootcamp.mscustomers;
+package com.bootcamp.btmscustomers;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
