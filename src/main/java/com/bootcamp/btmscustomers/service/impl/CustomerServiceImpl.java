@@ -1,10 +1,12 @@
 package com.bootcamp.btmscustomers.service.impl;
 
 import com.bootcamp.btmscustomers.model.Customer;
+import com.bootcamp.btmscustomers.model.CustomerProfile;
 import com.bootcamp.btmscustomers.model.CustomerType;
 import com.bootcamp.btmscustomers.repository.ICustomerRepository;
 import com.bootcamp.btmscustomers.repository.ICustomerTypeRepository;
 import com.bootcamp.btmscustomers.repository.IGenericRepository;
+import com.bootcamp.btmscustomers.service.ICustomerProfileService;
 import com.bootcamp.btmscustomers.service.ICustomerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,8 +29,11 @@ public class CustomerServiceImpl extends GenericServiceImpl<Customer,String> imp
     private final ICustomerTypeRepository customerTypeRepository;
     private final WebClient.Builder clientBuilder;
     private final ReactiveDiscoveryClient discoveryClient;
+    private final ICustomerProfileService customerProfile;
 
     private Mono<Map<String, CustomerType>> customerTypeMap = null;
+    private Mono<Map<String, CustomerProfile>> customerProfileMap = null;
+
 
     @Override
     protected IGenericRepository<Customer, String> getRepository() {
@@ -44,6 +49,15 @@ public class CustomerServiceImpl extends GenericServiceImpl<Customer,String> imp
         return customerTypeMap;
     }
 
+    private Mono<Map<String, CustomerProfile>> loadCustomerProfileMap() {
+        if(customerProfileMap == null) {
+            customerProfileMap = customerProfile.findAll()
+                    .collect(Collectors.toMap(CustomerProfile::getId, Function.identity()))
+                    .cache();
+        }
+        return customerProfileMap;
+    }
+
    @Override
     public Flux<Customer> findAll() {
         return loadCustomerTypeMap()
@@ -57,7 +71,16 @@ public class CustomerServiceImpl extends GenericServiceImpl<Customer,String> imp
                                 customer.setCustomerType(newType);
                             }
                             return customer;
-                        }));
+                        }).flatMap(e -> {
+                            return loadCustomerProfileMap().map(profile -> {
+                                CustomerProfile profileData = profile.get(e.getCustomerProfile());
+                                if(profileData != null) {
+                                    e.setCustomerProfile(profileData.getId());
+                                }
+                                return e;
+                            });
+                        })
+                );
     }
 
     @Override

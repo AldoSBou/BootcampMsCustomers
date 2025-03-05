@@ -16,4 +16,5 @@ public class CustomerDTO {
     private String email;
     private String documentNumber;
     private CustomerTypeDTO customerType;
+    private String customerProfile;
 }

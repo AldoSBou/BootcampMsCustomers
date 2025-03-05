@@ -11,29 +11,12 @@ import org.springframework.data.mongodb.core.mapping.Field;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
-@Document(collection = "customers")
-public class Customer {
+@Document(collection = "customer_profiles")
+public class CustomerProfile {
 
     @Id
     @EqualsAndHashCode.Include
     private String id;
-
     @Field
-    private String name;
-
-    @Field
-    private String lastName;
-
-    @Field
-    private String email;
-
-    @Field
-    private String documentNumber;
-
-    @Field
-    private CustomerType customerType;
-
-    @Field
-    private String customerProfile;
+    private String description;
 }
