@@ -1,5 +1,7 @@
 package com.bootcamp.btmscustomers.service.impl;
 
+import com.bootcamp.btmscustomers.config.KafkaProducer;
+import com.bootcamp.btmscustomers.dto.YankiTransactionDto;
 import com.bootcamp.btmscustomers.model.Customer;
 import com.bootcamp.btmscustomers.model.CustomerProfile;
 import com.bootcamp.btmscustomers.model.CustomerType;
@@ -8,6 +10,8 @@ import com.bootcamp.btmscustomers.repository.ICustomerTypeRepository;
 import com.bootcamp.btmscustomers.repository.IGenericRepository;
 import com.bootcamp.btmscustomers.service.ICustomerProfileService;
 import com.bootcamp.btmscustomers.service.ICustomerService;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.client.discovery.ReactiveDiscoveryClient;
@@ -30,6 +34,9 @@ public class CustomerServiceImpl extends GenericServiceImpl<Customer,String> imp
     private final WebClient.Builder clientBuilder;
     private final ReactiveDiscoveryClient discoveryClient;
     private final ICustomerProfileService customerProfile;
+    private final KafkaProducer kafkaUtil;
+    private final ObjectMapper objectMapper;
+    private final String yankiTopic = "topic-yanki";
 
     private Mono<Map<String, CustomerType>> customerTypeMap = null;
     private Mono<Map<String, CustomerProfile>> customerProfileMap = null;
@@ -81,6 +88,17 @@ public class CustomerServiceImpl extends GenericServiceImpl<Customer,String> imp
                             });
                         })
                 );
+    }
+
+    @Override
+    public Mono<Void> sendYankiTransaction(YankiTransactionDto transactionDto) {
+        return Mono.fromCallable(() -> objectMapper.writeValueAsBytes(transactionDto))
+                .doOnError(e -> log.error("Error serializando YankiTransactionDto: {}", transactionDto, e))
+                .flatMap(dtoBytes -> {
+                    kafkaUtil.sendMessage(yankiTopic, dtoBytes);
+                    return Mono.empty();
+                })
+                .onErrorResume(e -> Mono.empty()).then();
     }
 
     @Override

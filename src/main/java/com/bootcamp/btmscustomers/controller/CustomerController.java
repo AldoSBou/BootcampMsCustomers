@@ -1,6 +1,7 @@
 package com.bootcamp.btmscustomers.controller;
 
 import com.bootcamp.btmscustomers.dto.CustomerDTO;
+import com.bootcamp.btmscustomers.dto.YankiTransactionDto;
 import com.bootcamp.btmscustomers.mapper.MapperCustomer;
 import com.bootcamp.btmscustomers.service.ICustomerService;
 import com.bootcamp.btmscustomers.service.ICustomerTypeService;
@@ -86,5 +87,10 @@ public class CustomerController {
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(list)
         ).defaultIfEmpty(ResponseEntity.notFound().build());
+    }
+
+    @PostMapping("/yanki/transaction")
+    public Mono<ResponseEntity<Void>> yankiTransaction(@RequestBody YankiTransactionDto transactionDto, final ServerHttpRequest request) {
+        return customerService.sendYankiTransaction(transactionDto).then(Mono.just(ResponseEntity.ok().build()));
     }
 }
